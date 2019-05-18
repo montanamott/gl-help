@@ -37,7 +37,7 @@ GLFWwindow* setupWindow(const unsigned width, const unsigned height, string name
         std::cerr << "Error: Could not initialize GLFW. " << std::endl; 
         exit(1);
     } 
-    
+
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
@@ -62,6 +62,13 @@ GLFWwindow* setupWindow(const unsigned width, const unsigned height, string name
     // Initialize GLEW 
     glewExperimental = true; 
     glewInit(); 
+
+    // OpenGL defaults I commonly use 
+    // glEnable(GL_DEPTH_TEST); 
+    // glDepthFunc(GL_LESS);
+
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     return window; 
 }
