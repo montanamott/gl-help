@@ -32,7 +32,12 @@ bool checkShaderLinkError(unsigned int programID);
 GLFWwindow* setupWindow(const unsigned width, const unsigned height, string name)
 {
     // Initialize GLFW and configure window properties 
-    glfwInit(); 
+    if(!glfwInit())
+    {
+        std::cerr << "Error: Could not initialize GLFW. " << std::endl; 
+        exit(1);
+    } 
+    
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
