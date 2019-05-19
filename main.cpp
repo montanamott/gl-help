@@ -21,9 +21,9 @@ int main(int argc, char* argv[])
 
     GLFWwindow* window = setupWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Testing Window");
 
-    unsigned vertID = compileShader(vertexShaderSource, GL_VERTEX_SHADER); 
-    unsigned fragID = compileShader(fragmentShaderSource, GL_FRAGMENT_SHADER);
-    unsigned programID = linkAndDelete(vertID, fragID);
+    GLuint vertID = compileShader(vertexShaderSource, GL_VERTEX_SHADER); 
+    GLuint fragID = compileShader(fragmentShaderSource, GL_FRAGMENT_SHADER);
+    GLuint programID = linkAndDelete(vertID, fragID);
 
     float vertices[] = {
         -0.5f, -0.5f, 0.0f, // left  
@@ -31,7 +31,7 @@ int main(int argc, char* argv[])
          0.0f,  0.5f, 0.0f  // top   
     }; 
 
-    unsigned int VBO, VAO;
+    GLuint VBO, VAO;
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
     

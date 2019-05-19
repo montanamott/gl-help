@@ -17,6 +17,7 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h> 
 #include <iostream> 
+#include <fstream>
 #include <string> 
 
 using std::string; 
@@ -77,9 +78,9 @@ GLFWwindow* setupWindow(const unsigned width, const unsigned height, string name
 // vertID and fragID should be ID's of compiled shaders. This function links them into a program
 // and then sets the current program to be the one it links. Then it  deleets the compiled versions
 // of the shaders to save memory and returns the ID of the program
-unsigned linkAndDelete(unsigned vertID, unsigned fragID)
+GLuint linkAndDelete(unsigned vertID, unsigned fragID)
 {
-    unsigned programID = glCreateProgram(); 
+    GLuint programID = glCreateProgram(); 
     glAttachShader(programID, vertID);
     glAttachShader(programID, fragID);
     glLinkProgram(programID);
@@ -94,9 +95,9 @@ unsigned linkAndDelete(unsigned vertID, unsigned fragID)
 }
 
 // shaderType example: GL_VERTEX_SHADER, GL_FRAGMENT_SHADER
-unsigned compileShader(const char* shader_src, unsigned shaderType)
+GLuint compileShader(const char* shader_src, unsigned shaderType)
 {
-    unsigned int shaderID; 
+    GLuint shaderID; 
     shaderID = glCreateShader(shaderType); 
 
     glShaderSource(shaderID, 1, &shader_src, NULL); 
@@ -105,7 +106,17 @@ unsigned compileShader(const char* shader_src, unsigned shaderType)
     return shaderID;
 }
 
+string textFromFile(string filename)
+{
+    std::ifstream fin(filename);
+    if(!fin.is_open())
+    {
+        std::cout << "A shader file, \"" << filename << "\" couldn't be found." << std::endl;
+        return "";
+    }
 
+    return string( (std::istreambuf_iterator<char>(fin) ), (std::istreambuf_iterator<char>()) );
+}
 
 // Returns true of an error is present from compiling the given shaderID and prints
 // the associated error message
