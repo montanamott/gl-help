@@ -1,3 +1,15 @@
+
+// ----------------------- Important Note ---------------------------------//
+/////////////////////////////////////////////////////////////////////////////
+//                                                                         //
+//   This file is simply a template I keep in this repo for two reasons:   //
+//        1. To test my gl-help.hpp                                        //
+//        2. Keep as a starter template for OpenGL programs                //
+//                                                                         //
+//   It is not in any way a part of the helper functions in gl-help.hpp    //
+//                                                                         //
+/////////////////////////////////////////////////////////////////////////////
+
 #include "gl-help.hpp"
 
 const char *vertexShaderSource = "#version 330 core\n"
