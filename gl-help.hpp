@@ -156,3 +156,24 @@ inline void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
     glViewport(0, 0, width, height);
 }
+
+class VertexBuffer {
+    private: 
+        GLuint ID;
+    public: 
+        VertexBuffer(const void* data, unsigned size)
+        {
+            glGenBuffers(1, &ID);
+            glBindBuffer(GL_ARRAY_BUFFER, ID);
+            glBufferData(GL_ARRAY_BUFFER, size, data, GL_STATIC_DRAW);
+        }
+
+        ~VertexBuffer()
+        { glDeleteBuffers(1, &ID); }
+
+        void Bind() 
+        { glBindBuffer(GL_ARRAY_BUFFER, ID); }
+       
+        void Unbind() 
+        { glBindBuffer(GL_ARRAY_BUFFER, 0); }
+};
