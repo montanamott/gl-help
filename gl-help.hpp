@@ -20,6 +20,7 @@
 #include <fstream>
 #include <string> 
 #include <vector>
+#include <sstream>
 
 using std::string; 
 using std::fstream; 
@@ -76,36 +77,6 @@ GLFWwindow* setupWindow(const unsigned width, const unsigned height, string name
 }
 
 
-// vertID and fragID should be ID's of compiled shaders. This function links them into a program
-// and then sets the current program to be the one it links. Then it  deleets the compiled versions
-// of the shaders to save memory and returns the ID of the program
-GLuint linkAndDelete(unsigned vertID, unsigned fragID)
-{
-    GLuint programID = glCreateProgram(); 
-    glAttachShader(programID, vertID);
-    glAttachShader(programID, fragID);
-    glLinkProgram(programID);
-
-    glDeleteShader(vertID);
-    glDeleteShader(fragID);
-
-    if(checkShaderLinkError(programID)) return 0;
-    
-    glUseProgram(programID);
-    return programID;
-}
-
-// shaderType example: GL_VERTEX_SHADER, GL_FRAGMENT_SHADER
-GLuint compileShader(const char* shader_src, unsigned shaderType)
-{
-    GLuint shaderID; 
-    shaderID = glCreateShader(shaderType); 
-
-    glShaderSource(shaderID, 1, &shader_src, NULL); 
-    glCompileShader(shaderID);
-    if(checkShaderError(shaderID)) return 0; 
-    return shaderID;
-}
 
 string textFromFile(string filename)
 {
@@ -153,6 +124,7 @@ bool checkShaderLinkError(unsigned int programID)
     return false;
 }
 
+
 inline void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
     glViewport(0, 0, width, height);
@@ -169,6 +141,125 @@ unsigned int GetSizeOfType(unsigned int type)
     std::cerr << "Error: Using unsupported GLType with unknown size" << std::endl;
     return 0; 
 }
+
+struct ShaderProgramSource 
+{ 
+    std::string vertexSource; 
+    std::string fragmentSource;
+};
+
+enum class ShaderType 
+{
+    NONE = -1, 
+    VERTEX = 0,
+    FRAGMENT = 1
+};
+
+class Shader 
+{
+    private: 
+        unsigned ID;
+        string filePath;
+
+    public: 
+        Shader(const std::string& filePath)
+            : filePath(filePath), ID(0)
+        {
+            ShaderProgramSource source = parseShader();
+            ID = linkAndDelete(compileShader(source.vertexSource.c_str(), GL_VERTEX_SHADER), 
+                                            compileShader(source.fragmentSource.c_str(), GL_FRAGMENT_SHADER));
+
+        }
+
+        ~Shader()
+        {
+            glDeleteProgram(ID);
+        }
+
+        void bind() const
+        {
+            glUseProgram(ID);
+        }
+
+        void unbind() const 
+        {
+            glUseProgram(0);
+        }
+
+        void setUniformMat4(const std::string& name, const GLfloat* value)
+        {
+            glUniformMatrix4fv(getUniformLocation(name), 1, GL_FALSE, value);
+        }
+
+    private:
+
+        // shaderType example: GL_VERTEX_SHADER, GL_FRAGMENT_SHADER
+        GLuint compileShader(const char* shader_src, unsigned shaderType)
+        {
+            GLuint shaderID; 
+            shaderID = glCreateShader(shaderType); 
+
+            glShaderSource(shaderID, 1, &shader_src, NULL); 
+            glCompileShader(shaderID);
+            if(checkShaderError(shaderID)) return 0; 
+            return shaderID;
+        }
+
+        // vertID and fragID should be ID's of compiled shaders. This function links them into a program
+        // and then sets the current program to be the one it links. Then it  deleets the compiled versions
+        // of the shaders to save memory and returns the ID of the program
+        GLuint linkAndDelete(unsigned vertID, unsigned fragID)
+        {
+            GLuint programID = glCreateProgram(); 
+            glAttachShader(programID, vertID);
+            glAttachShader(programID, fragID);
+            glLinkProgram(programID);
+
+            glDeleteShader(vertID);
+            glDeleteShader(fragID);
+
+            if(checkShaderLinkError(programID)) return 0;
+            
+            return programID;
+        }
+
+        int getUniformLocation(const std::string& name)
+        {
+            int location = glGetUniformLocation(ID, name.c_str());
+            if(location == -1)
+            {
+                std::cout << "A uniform in Program " << ID << " called " << name << " could not be found.\n";
+            }
+
+            return location;
+        }
+
+        ShaderProgramSource parseShader()
+        {
+            std::ifstream stream(filePath);
+            std::string line; 
+            std::stringstream sources[2]; 
+            ShaderType type = ShaderType::NONE;
+            while(std::getline(stream, line))
+            {
+                if(line.find("#shader") != std::string::npos)
+                {
+                    if(line.find("vertex") != std::string::npos)
+                        type = ShaderType::VERTEX; 
+                    else if (line.find("fragment") != std::string::npos)
+                        type = ShaderType::FRAGMENT;
+                }
+                else
+                {
+                    sources[(int)type] << line << '\n';
+                }
+            }
+
+            std::cout << "My vertex shader is: " << sources[0].str(); 
+            std::cout << "\n And my fragment shader is: " << sources[1].str();
+            return { sources[0].str(), sources[1].str() };
+        }
+};
 
 class VertexBuffer {
     private: 

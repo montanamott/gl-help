@@ -12,18 +12,6 @@
 
 #include "gl-help.hpp"
 
-const char *vertexShaderSource = "#version 330 core\n"
-    "layout (location = 0) in vec3 aPos;\n"
-    "void main()\n"
-    "{\n"
-    "   gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
-    "}\0";
-const char *fragmentShaderSource = "#version 330 core\n"
-    "out vec4 FragColor;\n"
-    "void main()\n"
-    "{\n"
-    "   FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
-    "}\n\0";
 
 const unsigned WINDOW_WIDTH = 600;
 const unsigned WINDOW_HEIGHT = 600;
@@ -33,9 +21,8 @@ int main(int argc, char* argv[])
 
     GLFWwindow* window = setupWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Testing Window");
 
-    GLuint vertID = compileShader(vertexShaderSource, GL_VERTEX_SHADER); 
-    GLuint fragID = compileShader(fragmentShaderSource, GL_FRAGMENT_SHADER);
-    GLuint programID = linkAndDelete(vertID, fragID);
+    Shader basic("Basic.glsl");
+    basic.bind();
 
     float positions[] = {
        -0.5f, -0.5f,       // Bottom left
@@ -73,7 +60,7 @@ int main(int argc, char* argv[])
         glClear(GL_COLOR_BUFFER_BIT);
 
         // Draw a triangle
-        glUseProgram(programID);
+        basic.bind();
         va.Bind(); 
         ib.Bind();
 
