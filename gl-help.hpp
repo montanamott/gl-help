@@ -19,6 +19,7 @@
 #include <iostream> 
 #include <fstream>
 #include <string> 
+#include <vector>
 
 using std::string; 
 using std::fstream; 
@@ -157,23 +158,149 @@ inline void framebuffer_size_callback(GLFWwindow* window, int width, int height)
     glViewport(0, 0, width, height);
 }
 
+unsigned int GetSizeOfType(unsigned int type)
+{
+    switch(type)
+    {
+        case GL_FLOAT:          return 4;
+        case GL_UNSIGNED_INT:   return 4;
+        case GL_UNSIGNED_BYTE:  return 1;
+    }
+    std::cerr << "Error: Using unsupported GLType with unknown size" << std::endl;
+    return 0; 
+}
+
 class VertexBuffer {
     private: 
         GLuint ID;
     public: 
-        VertexBuffer(const void* data, unsigned size)
+        VertexBuffer(const void* data, unsigned sizeBytes)
         {
             glGenBuffers(1, &ID);
             glBindBuffer(GL_ARRAY_BUFFER, ID);
-            glBufferData(GL_ARRAY_BUFFER, size, data, GL_STATIC_DRAW);
+            glBufferData(GL_ARRAY_BUFFER, sizeBytes, data, GL_STATIC_DRAW);
         }
 
         ~VertexBuffer()
         { glDeleteBuffers(1, &ID); }
 
-        void Bind() 
+        void Bind() const
         { glBindBuffer(GL_ARRAY_BUFFER, ID); }
        
-        void Unbind() 
+        void Unbind() const
         { glBindBuffer(GL_ARRAY_BUFFER, 0); }
 };
+
+class IndexBuffer {
+    private: 
+        GLuint ID, count;
+    public: 
+        IndexBuffer(const void* data, unsigned count)
+        :   count(count)
+        {
+            glGenBuffers(1, &ID);
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ID);
+            glBufferData(GL_ELEMENT_ARRAY_BUFFER, count*sizeof(GLuint), data, GL_STATIC_DRAW);
+        }
+
+        ~IndexBuffer()
+        { glDeleteBuffers(1, &ID); }
+
+        void Bind() const
+        { glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ID); }
+       
+        void Unbind() const
+        { glBindBuffer(GL_ARRAY_BUFFER, 0); }
+};
+
+struct VertexBufferElement 
+{
+    GLuint type; 
+    GLuint count; 
+    unsigned char normalized;
+};
+
+class BufferLayout
+{
+    private: 
+        std::vector<VertexBufferElement> elements;
+        unsigned stride;
+    public: 
+
+        BufferLayout()
+            : stride(0)
+        {}
+
+        BufferLayout(unsigned reserve_amount)
+            : stride(0)
+        {
+            elements.reserve(reserve_amount);
+        }
+
+        template<typename T> 
+        void Push(unsigned count)
+        {
+            std::cerr << "Error: Unmatched Type, Push is doing nothing " << std::endl; 
+        }
+
+        template<>
+        void Push<float>(unsigned count)
+        {
+            elements.push_back({GL_FLOAT, count, GL_FALSE});
+            stride += count * GetSizeOfType(GL_FLOAT); 
+        }
+
+        template<>
+        void Push<unsigned int>(unsigned count)
+        {
+            elements.push_back({GL_UNSIGNED_INT, count, GL_FALSE});
+            stride += count * GetSizeOfType(GL_UNSIGNED_INT);
+        }
+
+        template<>
+        void Push<unsigned char>(unsigned count)
+        {
+            elements.push_back({GL_UNSIGNED_BYTE, count, GL_TRUE});
+            stride += count * GetSizeOfType(GL_UNSIGNED_BYTE); 
+        }
+
+        inline const std::vector<VertexBufferElement>& GetElements() const { return elements; }
+        inline unsigned GetStride() const { return stride; }
+};
+
+class VertexArray {
+    private: 
+        unsigned ID;
+    public: 
+        VertexArray() 
+        {
+            glGenVertexArrays(1, &ID);
+        }
+
+        ~VertexArray()
+        {
+            glDeleteVertexArrays(1, &ID);
+        }
+
+        void Bind() const
+        { glBindVertexArray( ID); }
+       
+        void Unbind() const
+        { glBindVertexArray(0); }
+
+        void AddBuffer(const VertexBuffer& vb, const BufferLayout& layout)
+        {
+            Bind();
+            vb.Bind();
+            const auto& elements = layout.GetElements();
+            unsigned offset = 0; 
+            for(unsigned i = 0; i < elements.size(); ++i)
+            {
+                const auto& element = elements[i];
+                glEnableVertexAttribArray(i); 
+                glVertexAttribPointer(i, element.count, element.type, element.normalized, layout.GetStride(), (const void*)offset);
+                offset += element.count * GetSizeOfType(element.type);
+            }
+        }
+
+}; 

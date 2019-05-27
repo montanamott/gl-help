@@ -37,30 +37,25 @@ int main(int argc, char* argv[])
     GLuint fragID = compileShader(fragmentShaderSource, GL_FRAGMENT_SHADER);
     GLuint programID = linkAndDelete(vertID, fragID);
 
-    float vertices[] = {
-        -0.5f, -0.5f, 0.0f, // left  
-         0.5f, -0.5f, 0.0f, // right 
-         0.0f,  0.5f, 0.0f  // top   
+    float positions[] = {
+       -0.5f, -0.5f,       // Bottom left
+        0.5f, -0.5f,        // Bottom right
+        0.5f,  0.5f,        // Top right
+       -0.5f,  0.5f       // Top Left
     }; 
 
-    GLuint VBO, VAO;
-    glGenVertexArrays(1, &VAO);
-    glGenBuffers(1, &VBO);
-    
-    glBindVertexArray(VAO);
+    unsigned int indices[] = {
+        0, 1, 2, 
+        2, 3, 0
+    };
 
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+    VertexArray va;
+    VertexBuffer vb(positions, 4 * 2 * sizeof(float));
+    BufferLayout layout; 
+    layout.Push<float>(2); 
+    va.AddBuffer(vb, layout);
 
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-    glEnableVertexAttribArray(0);
-
-    
-    glBindBuffer(GL_ARRAY_BUFFER, 0); 
-
-
-    glBindVertexArray(0); 
-
+    IndexBuffer ib(indices, 6); 
 
     // uncomment this call to draw using wireframe 
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -79,16 +74,14 @@ int main(int argc, char* argv[])
 
         // Draw a triangle
         glUseProgram(programID);
-        glBindVertexArray(VAO); 
-        glDrawArrays(GL_TRIANGLES, 0, 3);
+        va.Bind(); 
+        ib.Bind();
+
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
         // glBindVertexArray(0); 
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
-
-    glDeleteVertexArrays(1, &VAO);
-    glDeleteBuffers(1, &VBO);
-
 
     glfwTerminate();
     return 0;
