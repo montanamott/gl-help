@@ -1,3 +1,5 @@
+#ifndef GL_HELP_H
+#define GL_HELP_H
 
 // ---------------- Montana Mott's OpenGL Helper File ---------------- // 
 
@@ -13,9 +15,10 @@
 // comments, questions, or suggestions!
 // ------------------------------------------------------------------- //
 
-
 #include <GL/glew.h>
 #include <GLFW/glfw3.h> 
+#include <STBI/stb_image.h> 
+#include <STBI/decoy_stb.cpp>
 #include <iostream> 
 #include <fstream>
 #include <string> 
@@ -26,8 +29,7 @@ using std::string;
 using std::fstream; 
 
 inline void framebuffer_size_callback(GLFWwindow* window, int width, int height);
-bool checkShaderError(unsigned shaderID);
-bool checkShaderLinkError(unsigned int programID);
+
 
 // Creates a window with the specified height, width, and name, and returns a pointer to that window 
 // and sets the current OpenGL context to be the window, and initializes GLFW and GLEW
@@ -74,54 +76,6 @@ GLFWwindow* setupWindow(const unsigned width, const unsigned height, string name
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     return window; 
-}
-
-
-
-string textFromFile(string filename)
-{
-    std::ifstream fin(filename);
-    if(!fin.is_open())
-    {
-        std::cout << "A shader file, \"" << filename << "\" couldn't be found." << std::endl;
-        return "";
-    }
-
-    return string( (std::istreambuf_iterator<char>(fin) ), (std::istreambuf_iterator<char>()) );
-}
-
-// Returns true of an error is present from compiling the given shaderID and prints
-// the associated error message
-bool checkShaderError(unsigned shaderID)
-{
-    int success; 
-    char infoLog[512]; 
-    glGetShaderiv(shaderID, GL_COMPILE_STATUS, &success);
-    if(!success)
-    {
-        glGetShaderInfoLog(shaderID, 512, NULL, infoLog);
-        std::cerr << "Errror: Shader Compilation failed, the message is: " << infoLog << std::endl; 
-        return true;
-    }
-
-    std::cout << "Shader " << shaderID << " compiled succesfully. \n";
-    return false;
-}
-
-bool checkShaderLinkError(unsigned int programID)
-{
-    int success; 
-    char infoLog[512]; 
-    glGetProgramiv(programID, GL_COMPILE_STATUS, &success);
-    if(!success)
-    {
-        glGetProgramInfoLog(programID, 512, NULL, infoLog);
-        std::cerr << "Errror: Program linking failed, the message is: " << infoLog << std::endl; 
-        return true;
-    }
-
-    std::cout << "Shader " << programID << " compiled succesfully. \n";
-    return false;
 }
 
 
@@ -191,13 +145,53 @@ class Shader
             glUniformMatrix4fv(getUniformLocation(name), 1, GL_FALSE, value);
         }
 
+        void setUniform1i(const std::string& name, const int value)
+        {
+            glUniform1i(getUniformLocation(name), value);
+        }
+
     private:
+
+        // Returns true of an error is present from compiling the given shaderID and prints
+        // the associated error message
+        bool checkShaderError(unsigned shaderID)
+        {
+            int success; 
+            char infoLog[512]; 
+            glGetShaderiv(shaderID, GL_COMPILE_STATUS, &success);
+            if(!success)
+            {
+                glGetShaderInfoLog(shaderID, 512, NULL, infoLog);
+                std::cerr << "Errror: Shader Compilation failed, the message is: " << infoLog << std::endl; 
+                return true;
+            }
+
+            std::cout << "Shader " << shaderID << " compiled succesfully. \n";
+            return false;
+        }
+
+        bool checkShaderLinkError(unsigned int programID)
+        {
+            int success; 
+            char infoLog[512]; 
+            glGetProgramiv(programID, GL_COMPILE_STATUS, &success);
+            if(!success)
+            {
+                glGetProgramInfoLog(programID, 512, NULL, infoLog);
+                std::cerr << "Errror: Program linking failed, the message is: " << infoLog << std::endl; 
+                return true;
+            }
+
+            std::cout << "Shader " << programID << " compiled succesfully. \n";
+            return false;
+        }
 
         // shaderType example: GL_VERTEX_SHADER, GL_FRAGMENT_SHADER
         GLuint compileShader(const char* shader_src, unsigned shaderType)
         {
             GLuint shaderID; 
             shaderID = glCreateShader(shaderType); 
+        
 
             glShaderSource(shaderID, 1, &shader_src, NULL); 
             glCompileShader(shaderID);
@@ -255,8 +249,8 @@ class Shader
                 }
             }
 
-            std::cout << "My vertex shader is: " << sources[0].str(); 
-            std::cout << "\n And my fragment shader is: " << sources[1].str();
+            //  std::cout << "My vertex shader is: " << sources[0].str(); 
+            // std::cout << "\n And my fragment shader is: " << sources[1].str();
             return { sources[0].str(), sources[1].str() };
         }
 };
@@ -275,7 +269,7 @@ class VertexBuffer {
         ~VertexBuffer()
         { glDeleteBuffers(1, &ID); }
 
-        void Bind() const
+        void bind() const
         { glBindBuffer(GL_ARRAY_BUFFER, ID); }
        
         void Unbind() const
@@ -297,10 +291,10 @@ class IndexBuffer {
         ~IndexBuffer()
         { glDeleteBuffers(1, &ID); }
 
-        void Bind() const
+        void bind() const
         { glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ID); }
        
-        void Unbind() const
+        void unbind() const
         { glBindBuffer(GL_ARRAY_BUFFER, 0); }
 };
 
@@ -329,27 +323,27 @@ class BufferLayout
         }
 
         template<typename T> 
-        void Push(unsigned count)
+        void push(unsigned count)
         {
             std::cerr << "Error: Unmatched Type, Push is doing nothing " << std::endl; 
         }
 
         template<>
-        void Push<float>(unsigned count)
+        void push<float>(unsigned count)
         {
             elements.push_back({GL_FLOAT, count, GL_FALSE});
             stride += count * GetSizeOfType(GL_FLOAT); 
         }
 
         template<>
-        void Push<unsigned int>(unsigned count)
+        void push<unsigned int>(unsigned count)
         {
             elements.push_back({GL_UNSIGNED_INT, count, GL_FALSE});
             stride += count * GetSizeOfType(GL_UNSIGNED_INT);
         }
 
         template<>
-        void Push<unsigned char>(unsigned count)
+        void push<unsigned char>(unsigned count)
         {
             elements.push_back({GL_UNSIGNED_BYTE, count, GL_TRUE});
             stride += count * GetSizeOfType(GL_UNSIGNED_BYTE); 
@@ -373,16 +367,16 @@ class VertexArray {
             glDeleteVertexArrays(1, &ID);
         }
 
-        void Bind() const
+        void bind() const
         { glBindVertexArray( ID); }
        
-        void Unbind() const
+        void unbind() const
         { glBindVertexArray(0); }
 
         void AddBuffer(const VertexBuffer& vb, const BufferLayout& layout)
         {
-            Bind();
-            vb.Bind();
+            bind();
+            vb.bind();
             const auto& elements = layout.GetElements();
             unsigned offset = 0; 
             for(unsigned i = 0; i < elements.size(); ++i)
@@ -395,3 +389,59 @@ class VertexArray {
         }
 
 }; 
+
+class Texture {
+    private: 
+        unsigned ID; 
+        std::string filePath; 
+        unsigned char* localBuffer; 
+        int width, height, BPP; // Bits Per Pixel
+    
+    public: 
+        Texture(const std::string& path)
+            : ID(0), filePath(path), localBuffer(nullptr), width(0), height(0), BPP(0)
+        {
+            glGenTextures(1, &ID); 
+            glBindTexture(GL_TEXTURE_2D, ID);
+
+            stbi_set_flip_vertically_on_load(1);
+            localBuffer = stbi_load(path.c_str(), &width, &height, &BPP, 4);
+
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, localBuffer);
+            glBindTexture(GL_TEXTURE_2D, 0);
+
+            if(localBuffer)
+                stbi_image_free(localBuffer);
+        }
+
+        //stbi_set_flip_vertically_on_load(1);
+        //stbi_load(path.c_str(), &width, &height, &BPP, 4);
+        //stbi_image_free(localBuffer);
+
+        ~Texture()
+        {
+            glDeleteTextures(1, &ID);
+        }
+
+        void bind(unsigned slot)
+        {
+            glActiveTexture(GL_TEXTURE0 + slot);
+            glBindTexture(GL_TEXTURE_2D, ID);
+        }
+
+        void unbind()
+        {
+            glBindTexture(GL_TEXTURE_2D, 0);
+        }
+
+        inline unsigned getWidth() const { return width; }
+        inline unsigned getHeight() const { return height; }
+
+};
+
+#endif
