@@ -21,14 +21,14 @@ int main(int argc, char* argv[])
 
     GLFWwindow* window = setupWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Testing Window");
 
-    Shader basic("Basic.glsl");
-    basic.bind();
+    Shader shader("Basic.glsl");
+    shader.bind();
 
     float positions[] = {
-       -0.5f, -0.5f,       // Bottom left
-        0.5f, -0.5f,        // Bottom right
-        0.5f,  0.5f,        // Top right
-       -0.5f,  0.5f       // Top Left
+       -0.6f, -0.5f, 0.0f, 0.0f,     // Bottom left
+        0.6f, -0.5f, 1.0f, 0.0f,       // Bottom right
+        0.6f,  0.5f, 1.0f, 1.0f,       // Top right
+       -0.6f,  0.5f,  0.0f, 1.0f     // Top Left
     }; 
 
     unsigned int indices[] = {
@@ -36,10 +36,19 @@ int main(int argc, char* argv[])
         2, 3, 0
     };
 
+
+    Texture texture("neptune.png");
+    texture.bind(0);
+    shader.setUniform1i("u_Texture", 0);
+    
+
+
+
     VertexArray va;
-    VertexBuffer vb(positions, 4 * 2 * sizeof(float));
+    VertexBuffer vb(positions, 4 * 4 * sizeof(float));
     BufferLayout layout; 
-    layout.Push<float>(2); 
+    layout.push<float>(2); 
+    layout.push<float>(2); 
     va.AddBuffer(vb, layout);
 
     IndexBuffer ib(indices, 6); 
@@ -60,7 +69,7 @@ int main(int argc, char* argv[])
         glClear(GL_COLOR_BUFFER_BIT);
 
         // Draw a triangle
-        basic.bind();
+        shader.bind();
         va.Bind(); 
         ib.Bind();
 

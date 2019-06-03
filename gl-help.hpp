@@ -5,11 +5,6 @@
 
 // A typical workflow using the file may look something like this!
 
-//      GLFWwindow* window = setupWindow(600, 800, "Example_GL");
-//      unsigned vertID = compileShader(&vert_text, GL_VERTEX_SHADER); 
-//      unsigned fragID = compileShader(&frag_text, GL_FRAGMENT_SHADER);
-//      unsigned programID = linkAndDelete(vertID, fragID);
-
 // g++ main.cpp -o YOUR_EXECUTABLE.exe -lglfw -lglew -framework OpenGL -g
 // Please contact me on GitHub or submit an issue if you have any 
 // comments, questions, or suggestions!
@@ -73,7 +68,9 @@ GLFWwindow* setupWindow(const unsigned width, const unsigned height, string name
     // glDepthFunc(GL_LESS);
 
     glEnable(GL_BLEND);
+    glEnable(GL_DEPTH_TEST);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
 
     return window; 
 }
