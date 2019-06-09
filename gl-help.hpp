@@ -124,6 +124,7 @@ class Shader
 
         ~Shader()
         {
+            // std::cout << "Destructing Shader #" << ID << std::endl;
             glDeleteProgram(ID);
         }
 
@@ -145,6 +146,11 @@ class Shader
         void setUniform1i(const std::string& name, const int value)
         {
             glUniform1i(getUniformLocation(name), value);
+        }
+
+        void setUniform1f(const std::string& name, const int value)
+        {
+            glUniform1f(getUniformLocation(name), value);
         }
 
     private:
@@ -264,7 +270,10 @@ class VertexBuffer {
         }
 
         ~VertexBuffer()
-        { glDeleteBuffers(1, &ID); }
+        { 
+            // std::cout << "Destructing VBO #" << ID << std::endl;
+             glDeleteBuffers(1, &ID); 
+        }
 
         void bind() const
         { glBindBuffer(GL_ARRAY_BUFFER, ID); }
@@ -286,7 +295,10 @@ class IndexBuffer {
         }
 
         ~IndexBuffer()
-        { glDeleteBuffers(1, &ID); }
+        {   
+            // std::cout << "Destructing Index Buffer" << ID << std::endl;
+            glDeleteBuffers(1, &ID); 
+        }
 
         void bind() const
         { glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ID); }
@@ -356,12 +368,14 @@ class VertexArray {
     public: 
         VertexArray() 
         {
+            // std::cout << "Constructing a Vertex Array! \n" << std::endl;
             glGenVertexArrays(1, &ID);
         }
 
         ~VertexArray()
         {
             glDeleteVertexArrays(1, &ID);
+            // std::cout << "Destructing a Vertex Array! \n" << std::endl;
         }
 
         void bind() const
@@ -422,6 +436,7 @@ class Texture {
 
         ~Texture()
         {
+            // std::cout << "Destructing Texture #" << ID << std::endl;
             glDeleteTextures(1, &ID);
         }
 
