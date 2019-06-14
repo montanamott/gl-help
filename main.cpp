@@ -70,8 +70,8 @@ int main(int argc, char* argv[])
 
         // Draw a triangle
         shader.bind();
-        va.Bind(); 
-        ib.Bind();
+        va.bind(); 
+        ib.bind();
 
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
         // glBindVertexArray(0); 

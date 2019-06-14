@@ -5,7 +5,7 @@
 
 // A typical workflow using the file may look something like this!
 
-// g++ main.cpp -o YOUR_EXECUTABLE.exe -lglfw -lglew -framework OpenGL -g
+// g++ main.cpp -o YOUR_EXECUTABLE.exe -lglfw -lglew -framework OpenGL -g -std=c++11
 // Please contact me on GitHub or submit an issue if you have any 
 // comments, questions, or suggestions!
 // ------------------------------------------------------------------- //
@@ -394,7 +394,7 @@ class VertexArray {
             {
                 const auto& element = elements[i];
                 glEnableVertexAttribArray(i); 
-                glVertexAttribPointer(i, element.count, element.type, element.normalized, layout.GetStride(), (const void*)offset);
+                glVertexAttribPointer(i, element.count, element.type, element.normalized, layout.GetStride(), (const void*)(size_t)offset);
                 offset += element.count * GetSizeOfType(element.type);
             }
         }
@@ -404,19 +404,17 @@ class VertexArray {
 class Texture {
     private: 
         unsigned ID; 
-        std::string filePath; 
-        unsigned char* localBuffer; 
         int width, height, BPP; // Bits Per Pixel
     
     public: 
         Texture(const std::string& path)
-            : ID(0), filePath(path), localBuffer(nullptr), width(0), height(0), BPP(0)
+            : ID(0), width(0), height(0), BPP(0)
         {
             glGenTextures(1, &ID); 
             glBindTexture(GL_TEXTURE_2D, ID);
 
             stbi_set_flip_vertically_on_load(1);
-            localBuffer = stbi_load(path.c_str(), &width, &height, &BPP, 4);
+            unsigned char* localBuffer = stbi_load(path.c_str(), &width, &height, &BPP, 4);
 
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
