@@ -153,6 +153,11 @@ class Shader
             glUniform1f(getUniformLocation(name), value);
         }
 
+        void setUniformVec3(const std::string &name, const GLfloat* value)
+        {
+            glUniform3fv(getUniformLocation(name), 1, value);
+        }
+
     private:
 
         // Returns true of an error is present from compiling the given shaderID and prints
