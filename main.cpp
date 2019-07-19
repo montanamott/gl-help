@@ -32,8 +32,8 @@ int main(int argc, char* argv[])
     }; 
 
     unsigned int indices[] = {
-        0, 1, 2, 
-        2, 3, 0
+        2, 1, 0, 
+        0, 3, 2
     };
 
 
@@ -54,7 +54,7 @@ int main(int argc, char* argv[])
     IndexBuffer ib(indices, 6); 
 
     // uncomment this call to draw using wireframe 
-    //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
     // render loop
 

@@ -41,6 +41,7 @@ GLFWwindow* setupWindow(const unsigned width, const unsigned height, string name
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    glfwWindowHint(GLFW_DEPTH_BITS, 24);
 
     #ifdef __APPLE__ 
         glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); // Uncommenting this fixes compilation on OSX
@@ -67,9 +68,9 @@ GLFWwindow* setupWindow(const unsigned width, const unsigned height, string name
     // glEnable(GL_DEPTH_TEST); 
     // glDepthFunc(GL_LESS);
 
-    glEnable(GL_BLEND);
-    glEnable(GL_DEPTH_TEST);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    //glEnable(GL_BLEND);
+    //glEnable(GL_DEPTH_TEST);
+    //glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 
     return window; 
@@ -174,7 +175,7 @@ class Shader
                 return true;
             }
 
-            std::cout << "Shader " << shaderID << " compiled succesfully. \n";
+            // std::cout << "Shader " << shaderID << " compiled succesfully. \n";
             return false;
         }
 
@@ -190,7 +191,7 @@ class Shader
                 return true;
             }
 
-            std::cout << "Shader " << programID << " compiled succesfully. \n";
+            // std::cout << "Shader " << programID << " compiled succesfully. \n";
             return false;
         }
 
@@ -230,7 +231,8 @@ class Shader
             int location = glGetUniformLocation(ID, name.c_str());
             if(location == -1)
             {
-                std::cout << "A uniform in Program " << ID << " called " << name << " could not be found.\n";
+                std::cout << "A uniform in Program " << filePath << " called " << name << " could not be found." << std::endl;;
+                exit(1); 
             }
 
             return location;
@@ -408,10 +410,11 @@ class VertexArray {
 
 class Texture {
     private: 
-        unsigned ID; 
         int width, height, BPP; // Bits Per Pixel
     
     public: 
+    unsigned ID; 
+
         Texture(const std::string& path)
             : ID(0), width(0), height(0), BPP(0)
         {
@@ -423,8 +426,8 @@ class Texture {
 
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
             glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, localBuffer);
             glBindTexture(GL_TEXTURE_2D, 0);
@@ -440,7 +443,7 @@ class Texture {
         ~Texture()
         {
             // std::cout << "Destructing Texture #" << ID << std::endl;
-            glDeleteTextures(1, &ID);
+            // glDeleteTextures(1, &ID);
         }
 
         void bind(unsigned slot)
@@ -458,5 +461,7 @@ class Texture {
         inline unsigned getHeight() const { return height; }
 
 };
+
+
 
 #endif
