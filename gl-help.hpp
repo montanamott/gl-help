@@ -149,7 +149,7 @@ class Shader
             glUniform1i(getUniformLocation(name), value);
         }
 
-        void setUniform1f(const std::string& name, const int value)
+        void setUniform1f(const std::string& name, const float value)
         {
             glUniform1f(getUniformLocation(name), value);
         }
@@ -435,10 +435,6 @@ class Texture {
             if(localBuffer)
                 stbi_image_free(localBuffer);
         }
-
-        //stbi_set_flip_vertically_on_load(1);
-        //stbi_load(path.c_str(), &width, &height, &BPP, 4);
-        //stbi_image_free(localBuffer);
 
         ~Texture()
         {
