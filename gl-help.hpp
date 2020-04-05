@@ -13,7 +13,6 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h> 
 #include <STBI/stb_image.h> 
-#include <STBI/decoy_stb.cpp>
 #include <iostream> 
 #include <fstream>
 #include <string> 
@@ -23,13 +22,14 @@
 using std::string; 
 using std::fstream; 
 
+
 inline void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 
 
 // Creates a window with the specified height, width, and name, and returns a pointer to that window 
 // and sets the current OpenGL context to be the window, and initializes GLFW and GLEW
 // (This functions should most likely get called before anything else)
-GLFWwindow* setupWindow(const unsigned width, const unsigned height, string name)
+inline GLFWwindow* setupWindow(const unsigned width, const unsigned height, string name)
 {
     // Initialize GLFW and configure window properties 
     if(!glfwInit())
@@ -64,14 +64,6 @@ GLFWwindow* setupWindow(const unsigned width, const unsigned height, string name
     glewExperimental = true; 
     glewInit(); 
 
-    // OpenGL defaults I commonly use 
-    // glEnable(GL_DEPTH_TEST); 
-    // glDepthFunc(GL_LESS);
-
-    //glEnable(GL_BLEND);
-    //glEnable(GL_DEPTH_TEST);
-    //glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
 
     return window; 
 }
@@ -82,7 +74,7 @@ inline void framebuffer_size_callback(GLFWwindow* window, int width, int height)
     glViewport(0, 0, width, height);
 }
 
-unsigned int GetSizeOfType(unsigned int type)
+inline unsigned int GetSizeOfType(unsigned int type)
 {
     switch(type)
     {
@@ -125,7 +117,7 @@ class Shader
 
         ~Shader()
         {
-            // std::cout << "Destructing Shader #" << ID << std::endl;
+            std::cout << "Destructing Shader #" << ID << std::endl;
             glDeleteProgram(ID);
         }
 
@@ -139,7 +131,7 @@ class Shader
             glUseProgram(0);
         }
 
-        void setUniformMat4(const std::string& name, const GLfloat* value)
+        void setUniformMat4(const std::string& name, const GLfloat* value) const
         {
             glUniformMatrix4fv(getUniformLocation(name), 1, GL_FALSE, value);
         }
@@ -149,7 +141,7 @@ class Shader
             glUniform1i(getUniformLocation(name), value);
         }
 
-        void setUniform1f(const std::string& name, const int value)
+        void setUniform1f(const std::string& name, const float value)
         {
             glUniform1f(getUniformLocation(name), value);
         }
@@ -191,7 +183,7 @@ class Shader
                 return true;
             }
 
-            // std::cout << "Shader " << programID << " compiled succesfully. \n";
+            std::cout << "Shader " << programID << " compiled succesfully. \n";
             return false;
         }
 
@@ -226,7 +218,7 @@ class Shader
             return programID;
         }
 
-        int getUniformLocation(const std::string& name)
+        int getUniformLocation(const std::string& name) const
         {
             int location = glGetUniformLocation(ID, name.c_str());
             if(location == -1)
@@ -259,8 +251,8 @@ class Shader
                 }
             }
 
-            //  std::cout << "My vertex shader is: " << sources[0].str(); 
-            // std::cout << "\n And my fragment shader is: " << sources[1].str();
+            std::cout << "My vertex shader is: " << sources[0].str(); 
+            std::cout << "\n And my fragment shader is: " << sources[1].str();
             return { sources[0].str(), sources[1].str() };
         }
 };
@@ -282,6 +274,13 @@ class VertexBuffer {
              glDeleteBuffers(1, &ID); 
         }
 
+        VertexBuffer(VertexBuffer& other)
+        {
+            ID = other.ID;
+        }
+
+        VertexBuffer() { ID = -1; }
+
         void bind() const
         { glBindBuffer(GL_ARRAY_BUFFER, ID); }
        
@@ -291,15 +290,21 @@ class VertexBuffer {
 
 class IndexBuffer {
     private: 
-        GLuint ID, count;
+        GLuint ID;
     public: 
-        IndexBuffer(const void* data, unsigned count)
-        :   count(count)
+        IndexBuffer(const void* data, unsigned sizeBytes)
         {
             glGenBuffers(1, &ID);
             glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ID);
-            glBufferData(GL_ELEMENT_ARRAY_BUFFER, count*sizeof(GLuint), data, GL_STATIC_DRAW);
+            glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeBytes, data, GL_STATIC_DRAW);
         }
+
+        IndexBuffer(IndexBuffer& other)
+        {
+            ID = other.ID;
+        }
+
+        IndexBuffer() { ID = -1; }
 
         ~IndexBuffer()
         {   
@@ -410,30 +415,76 @@ class VertexArray {
 
 class Texture {
     private: 
-        int width, height, BPP; // Bits Per Pixel
+        int texType, width, height, BPP; // Bits Per Pixel
     
     public: 
     unsigned ID; 
 
         Texture(const std::string& path)
-            : ID(0), width(0), height(0), BPP(0)
+            : texType(GL_TEXTURE_2D), ID(0), width(0), height(0), BPP(0)
         {
             glGenTextures(1, &ID); 
-            glBindTexture(GL_TEXTURE_2D, ID);
+            glBindTexture(texType, ID);
 
             stbi_set_flip_vertically_on_load(1);
-            unsigned char* localBuffer = stbi_load(path.c_str(), &width, &height, &BPP, 4);
+              unsigned char* localBuffer = stbi_load(path.c_str(), &width, &height, &BPP, 4);
+              //printf((const char*)localBuffer);
+              /*
+            width = 20;
+            height = 20;
+              GLubyte texBuff[1200];
+              for (unsigned int i = 0; i < 1200; ++i)
+              {
+                  float ratio = i / 1200.0;
+                  int final = ratio * 255.0;
+                  if ((i) % 3 == 0)
+                  {
+                      texBuff[i] = final;
+                  }
+                  else
+                  {
+                      texBuff[i] = 0;
+                  }
+              }
+              */
 
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, localBuffer);
-            glBindTexture(GL_TEXTURE_2D, 0);
+            glTexParameteri(texType, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+            glTexParameteri(texType, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+            glTexParameteri(texType, GL_TEXTURE_WRAP_S, GL_REPEAT);
+            glTexParameteri(texType, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+            glTexImage2D(texType, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, localBuffer);
+            glBindTexture(texType, 0);
 
             if(localBuffer)
                 stbi_image_free(localBuffer);
+        }
+
+        Texture(const std::vector<std::string>& paths)
+            : texType(GL_TEXTURE_CUBE_MAP), ID(0), width(0), height(0), BPP(0)
+        {
+            glGenTextures(1, &ID);
+            glBindTexture(texType, ID);
+            stbi_set_flip_vertically_on_load(0);
+            for (unsigned i = 0; i < paths.size(); ++i)
+            {
+                unsigned char* localBuffer = stbi_load(paths[i].c_str(), &width, &height, &BPP, 4);
+                if (localBuffer)
+                {
+
+                    glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, localBuffer);
+                    stbi_image_free(localBuffer);
+                }
+            }
+
+            glTexParameteri(texType, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+            glTexParameteri(texType, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+            glTexParameteri(texType, GL_TEXTURE_WRAP_S, GL_REPEAT);
+            glTexParameteri(texType, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+            glBindTexture(texType, 0);
+
         }
 
         //stbi_set_flip_vertically_on_load(1);
@@ -446,15 +497,15 @@ class Texture {
             // glDeleteTextures(1, &ID);
         }
 
-        void bind(unsigned slot)
+        void bind(unsigned slot) const
         {
             glActiveTexture(GL_TEXTURE0 + slot);
-            glBindTexture(GL_TEXTURE_2D, ID);
+            glBindTexture(texType, ID);
         }
-
+        
         void unbind()
         {
-            glBindTexture(GL_TEXTURE_2D, 0);
+            glBindTexture(texType, 0);
         }
 
         inline unsigned getWidth() const { return width; }
