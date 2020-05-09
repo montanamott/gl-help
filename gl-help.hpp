@@ -2,10 +2,6 @@
 #define GL_HELP_H
 
 // ---------------- Montana Mott's OpenGL Helper File ---------------- // 
-
-// A typical workflow using the file may look something like this!
-
-// g++ main.cpp -o YOUR_EXECUTABLE.exe -lglfw -lglew -framework OpenGL -g -std=c++11
 // Please contact me on GitHub or submit an issue if you have any 
 // comments, questions, or suggestions!
 // ------------------------------------------------------------------- //
@@ -251,8 +247,6 @@ class Shader
                 }
             }
 
-            std::cout << "My vertex shader is: " << sources[0].str(); 
-            std::cout << "\n And my fragment shader is: " << sources[1].str();
             return { sources[0].str(), sources[1].str() };
         }
 };
@@ -270,7 +264,6 @@ class VertexBuffer {
 
         ~VertexBuffer()
         { 
-            // std::cout << "Destructing VBO #" << ID << std::endl;
              glDeleteBuffers(1, &ID); 
         }
 
@@ -308,7 +301,6 @@ class IndexBuffer {
 
         ~IndexBuffer()
         {   
-            // std::cout << "Destructing Index Buffer" << ID << std::endl;
             glDeleteBuffers(1, &ID); 
         }
 
@@ -380,14 +372,12 @@ class VertexArray {
     public: 
         VertexArray() 
         {
-            // std::cout << "Constructing a Vertex Array! \n" << std::endl;
             glGenVertexArrays(1, &ID);
         }
 
         ~VertexArray()
         {
             glDeleteVertexArrays(1, &ID);
-            // std::cout << "Destructing a Vertex Array! \n" << std::endl;
         }
 
         void bind() const
@@ -428,25 +418,6 @@ class Texture {
 
             stbi_set_flip_vertically_on_load(1);
               unsigned char* localBuffer = stbi_load(path.c_str(), &width, &height, &BPP, 4);
-              //printf((const char*)localBuffer);
-              /*
-            width = 20;
-            height = 20;
-              GLubyte texBuff[1200];
-              for (unsigned int i = 0; i < 1200; ++i)
-              {
-                  float ratio = i / 1200.0;
-                  int final = ratio * 255.0;
-                  if ((i) % 3 == 0)
-                  {
-                      texBuff[i] = final;
-                  }
-                  else
-                  {
-                      texBuff[i] = 0;
-                  }
-              }
-              */
 
 
             glTexParameteri(texType, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -487,15 +458,13 @@ class Texture {
 
         }
 
-        //stbi_set_flip_vertically_on_load(1);
-        //stbi_load(path.c_str(), &width, &height, &BPP, 4);
-        //stbi_image_free(localBuffer);
+
 
         ~Texture()
         {
-            // std::cout << "Destructing Texture #" << ID << std::endl;
-            // glDeleteTextures(1, &ID);
+            glDeleteTextures(1, &ID);
         }
+   
 
         void bind(unsigned slot) const
         {
