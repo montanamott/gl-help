@@ -1,11 +1,6 @@
 #ifndef GL_HELP_H
 #define GL_HELP_H
 
-// ---------------- Montana Mott's OpenGL Helper File ---------------- // 
-// Please contact me on GitHub or submit an issue if you have any 
-// comments, questions, or suggestions!
-// ------------------------------------------------------------------- //
-
 #include <GL/glew.h>
 #include <GLFW/glfw3.h> 
 #include <STBI/stb_image.h> 
